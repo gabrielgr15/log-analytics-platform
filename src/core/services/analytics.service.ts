@@ -7,6 +7,11 @@ export interface LogSummary {
   infoCount: number;
 }
 
+export interface HourlyErrorCount {
+  hour: string;
+  errorCount: number;
+}
+
 export type TimeRange = '24h' | '7d' | '30d';
 
 export class AnalyticsService {
@@ -33,6 +38,45 @@ export class AnalyticsService {
       warnCount,
       infoCount,
     };
+  }
+
+  public async getErrorsByHour(projectId: string): Promise<HourlyErrorCount[]> {
+    const startDate = new Date();
+    startDate.setHours(startDate.getHours() - 24);
+    const dbResults = await this.analyticsRepository.countErrorsByHour(
+      projectId,
+      startDate
+    );
+
+    const hoursMap = new Map<string, number>();
+    const now = new Date();
+    now.setMinutes(0, 0, 0);
+
+    for (let i = 0; i < 24; i++) {
+      const hour = new Date(now);
+      hour.setHours(hour.getHours() - i);
+      hoursMap.set(hour.toISOString(), 0);
+    }
+
+    for (const result of dbResults) {
+      const hourKey = result.hour.toISOString();
+      if (hoursMap.has(hourKey)) {
+        hoursMap.set(hourKey, result.errorCount);
+      }
+    }
+
+    const finalResult = Array.from(hoursMap.entries()).map(
+      ([hour, errorCount]) => ({
+        hour,
+        errorCount,
+      })
+    );
+
+    finalResult.sort(
+      (a, b) => new Date(a.hour).getTime() - new Date(b.hour).getTime()
+    );
+
+    return finalResult;
   }
 
   private calculateStartDate(timeRange: TimeRange): Date {

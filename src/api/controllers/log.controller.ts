@@ -2,7 +2,7 @@
 
 import { Request, Response } from 'express';
 import { LogService } from '../../core/services/log.service.js';
-import { logBatchSchema } from 'src/core/validation/log.schema.js';
+import { logBatchSchema } from '../../core/validation/log.schema.js';
 
 export class LogController {
   private readonly logService: LogService;

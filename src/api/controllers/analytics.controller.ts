@@ -2,7 +2,7 @@ import {
   AnalyticsService,
   LogSummary,
   TimeRange,
-} from 'src/core/services/analytics.service.js';
+} from '../../core/services/analytics.service.js';
 import { Request, Response } from 'express';
 
 export class AnalyticsController {
@@ -33,9 +33,9 @@ export class AnalyticsController {
           });
           return;
         }
+        timeRange = timeRangeQuery as TimeRange;
       }
 
-      timeRange = timeRangeQuery as TimeRange;
       const projectId = req.project.id;
 
       const logSummary: LogSummary = await this.analyticsService.getLogSummary(
@@ -47,6 +47,28 @@ export class AnalyticsController {
     } catch (error) {
       console.error('Error in Analytics Controller:', error);
       res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+  public getErrorsByHour = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
+    try {
+      if (!req.project) {
+        console.error('FATAL: req.project missing after authMiddleware.');
+        res.status(500).json({
+          message: 'Internal Server Error: Authentication context missing.',
+        });
+        return;
+      }
+      const projectId = req.project.id;
+      const hourlyErrorCount =
+        await this.analyticsService.getErrorsByHour(projectId);
+      res.status(200).json(hourlyErrorCount);
+    } catch (error) {
+      console.error('Error in AnalyticsController (getErrorsByHour)', error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   };
 }

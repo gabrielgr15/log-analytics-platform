@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 export class AnalyticsRepository {
   private readonly prisma: PrismaClient;
@@ -37,5 +37,31 @@ export class AnalyticsRepository {
       },
     });
     return count;
+  }
+
+  public async countErrorsByHour(
+    projectId: string,
+    startDate: Date
+  ): Promise<{ hour: Date; errorCount: number }[]> {
+    const result = await this.prisma.$queryRaw<
+      { hour: Date; error_count: bigint }[]
+    >(
+      Prisma.sql`
+        SELECT
+            DATE_TRUNC('hour', "timestamp") AS hour,
+            count(*) AS error_count
+        FROM "Log"
+        Where "projectId" = ${projectId}
+            AND "level" = 'error'
+            AND "timestamp" >= ${startDate}
+        GROUP BY hour
+        ORDER BY hour ASC;
+        `
+    );
+
+    return result.map((row) => ({
+      hour: row.hour,
+      errorCount: Number(row.error_count),
+    }));
   }
 }
