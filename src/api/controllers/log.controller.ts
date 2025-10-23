@@ -1,7 +1,8 @@
 // src/api/controllers/log.controller.ts
 
 import { Request, Response } from 'express';
-import { LogService, RawLogInput } from '../../core/services/log.service.js';
+import { LogService } from '../../core/services/log.service.js';
+import { logBatchSchema } from 'src/core/validation/log.schema.js';
 
 export class LogController {
   private readonly logService: LogService;
@@ -12,21 +13,17 @@ export class LogController {
 
   public ingestLogs = async (req: Request, res: Response): Promise<void> => {
     try {
-      const logs = req.body as RawLogInput[];
+      const validationResult = logBatchSchema.safeParse(req.body);
 
-      if (!Array.isArray(logs) || logs.length === 0) {
+      if (!validationResult.success) {
         res.status(400).json({
-          message: 'Bad Request: Log batch must be a non-empty array',
+          message: 'Bad Request: Invalid log batch format.',
+          errors: validationResult.error.issues,
         });
         return;
       }
 
-      if (logs.length > 100) {
-        res.status(400).json({
-          message: 'Bad Request: Log batch cannot exceed 100 entries',
-        });
-        return;
-      }
+      const logs = validationResult.data;
 
       if (!req.project) {
         console.error('FATAL: req.project missing after authMiddleware.');
