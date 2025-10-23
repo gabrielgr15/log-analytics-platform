@@ -35,6 +35,7 @@ apiRouter.use(authMiddleware);
 apiRouter.post('/logs', logController.ingestLogs);
 apiRouter.get('/analytics/summary', analyticsController.getLogSummary);
 apiRouter.get('/analytics/errors-by-hour', analyticsController.getErrorsByHour);
+apiRouter.get('/analytics/top-messages', analyticsController.getTopMessages);
 
 app.use('/v1', apiRouter);
 

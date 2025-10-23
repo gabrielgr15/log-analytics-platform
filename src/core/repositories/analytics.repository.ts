@@ -64,4 +64,36 @@ export class AnalyticsRepository {
       errorCount: Number(row.error_count),
     }));
   }
+
+  public async getTopMessages(
+    projectId: string,
+    level: string,
+    startDate: Date,
+    limit: number
+  ): Promise<{ message: string; count: number }[]> {
+    const results = await this.prisma.log.groupBy({
+      by: ['message'],
+      where: {
+        projectId: projectId,
+        level: level,
+        timestamp: {
+          gte: startDate,
+        },
+      },
+      _count: {
+        message: true,
+      },
+      orderBy: {
+        _count: {
+          message: 'desc',
+        },
+      },
+      take: limit,
+    });
+
+    return results.map((row) => ({
+      message: row.message,
+      count: row._count.message,
+    }));
+  }
 }

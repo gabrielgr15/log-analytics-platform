@@ -79,6 +79,22 @@ export class AnalyticsService {
     return finalResult;
   }
 
+  public async getTopMessages(
+    projectId: string,
+    level: string,
+    timeRange: TimeRange,
+    limit: number
+  ): Promise<{ message: string; count: number }[]> {
+    const startDate = this.calculateStartDate(timeRange);
+    const result = await this.analyticsRepository.getTopMessages(
+      projectId,
+      level,
+      startDate,
+      limit
+    );
+    return result;
+  }
+
   private calculateStartDate(timeRange: TimeRange): Date {
     const now = new Date();
     const daysToSubstract = {
