@@ -1,7 +1,7 @@
 import prisma from '../lib/prisma.js';
 import { Request, Response, NextFunction } from 'express';
 
-export async function authMiddleware(
+export async function apiKeyAuthMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
