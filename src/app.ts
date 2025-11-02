@@ -2,6 +2,7 @@
 
 import express from 'express';
 import prisma from './lib/prisma.js';
+import cookieParser from 'cookie-parser';
 
 import { LogRepository } from './core/repositories/log.repository.js';
 import { AlertRepository } from './core/repositories/alert.repository.js';
@@ -16,7 +17,7 @@ import { LogController } from './api/controllers/log.controller.js';
 import { AnalyticsController } from './api/controllers/analytics.controller.js';
 import { AuthController } from './api/controllers/auth.controller.js';
 
-import { apiKeyAuthMiddleware } from './middleware/auth.js';
+import { apiKeyAuthMiddleware } from './middleware/apiKeyAuth.middleware.js';
 
 const logRepository = new LogRepository(prisma);
 const alertRepository = new AlertRepository(prisma);
@@ -33,6 +34,7 @@ const authController = new AuthController(authService);
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 const authRouter = express.Router();
 authRouter.post('/register', authController.register);
